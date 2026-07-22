@@ -1,25 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<PropertyGroup>
-		<RootNamespace>OpenCertServer.CertServer</RootNamespace>
-		<UserSecretsId>cb0364b8-e43a-47c6-aa32-5f49429f0388</UserSecretsId>
-		<OutputType>Exe</OutputType>
-		<TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
-		<EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
-	</PropertyGroup>
+    <PropertyGroup>
+        <RootNamespace>OpenCertServer.CertServer</RootNamespace>
+        <UserSecretsId>cb0364b8-e43a-47c6-aa32-5f49429f0388</UserSecretsId>
+        <OutputType>Exe</OutputType>
+        <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+        <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <NoWarn>1701;1702;IL2026</NoWarn>
-	</PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <NoWarn>1701;1702;IL2026</NoWarn>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <NoWarn>1701;1702;IL2026</NoWarn>
-	</PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <NoWarn>1701;1702;IL2026</NoWarn>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\opencertserver.acme.server\opencertserver.acme.server.csproj" />
-		<ProjectReference Include="..\opencertserver.ca.server\opencertserver.ca.server.csproj" />
-		<ProjectReference Include="..\opencertserver.est.server\opencertserver.est.server.csproj" />
-	</ItemGroup>
-
+    <ItemGroup>
+        <ProjectReference Include="..\opencertserver.acme.server\opencertserver.acme.server.csproj"/>
+        <ProjectReference Include="..\opencertserver.ca.server\opencertserver.ca.server.csproj"/>
+        <ProjectReference Include="..\opencertserver.est.server\opencertserver.est.server.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens"/>
+        <PackageReference Include="Microsoft.IdentityModel.Protocols"/>
+        <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
+    </ItemGroup>
 </Project>

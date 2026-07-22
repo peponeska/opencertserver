@@ -25,7 +25,6 @@
     <Project Path="tests\opencertserver.ca.tests\opencertserver.ca.tests.csproj" />
     <Project Path="tests\opencertserver.certserver.tests\opencertserver.certserver.tests.csproj" />
     <Project Path="tests\opencertserver.est.server.tests\opencertserver.est.server.tests.csproj" />
-    <Project Path="tests\opencertserver.lambda.tests\opencertserver.lambda.tests.csproj" />
     <Project Path="tests\opencertserver.tpm.tests\opencertserver.tpm.tests.csproj" />
   </Folder>
   <Project Path="build\opencertserver.build\opencertserver.build.csproj" />
@@ -39,7 +38,6 @@
   <Project Path="src\opencertserver.ca.utils\opencertserver.ca.utils.csproj" />
   <Project Path="src\opencertserver.ca\opencertserver.ca.csproj" />
   <Project Path="src\opencertserver.est.client\opencertserver.est.client.csproj" />
-  <Project Path="src\opencertserver.lambda\opencertserver.lambda.csproj" />
   <Project Path="src\opencertserver.tpm\opencertserver.tpm.csproj" />
   <Project Path="src\opencertserver.tss.net\opencertserver.tss.net.csproj" />
 </Solution>

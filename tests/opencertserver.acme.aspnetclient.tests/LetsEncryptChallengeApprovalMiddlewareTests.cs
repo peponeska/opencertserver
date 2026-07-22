@@ -21,7 +21,7 @@ using NSubstitute;
 using Persistence;
 using Xunit;
 
-public sealed class LetsEncryptChallengeApprovalMiddlewareMiddlewareTests
+public sealed class LetsEncryptChallengeApprovalMiddlewareTests
 {
     private static readonly string AcmeToken = Guid.NewGuid().ToString();
     private static readonly string AcmeResponse = $"{Guid.NewGuid()}-{Guid.NewGuid()}";
@@ -29,7 +29,7 @@ public sealed class LetsEncryptChallengeApprovalMiddlewareMiddlewareTests
     private readonly FakeLetsEncryptClient _fakeClient;
     private readonly IHostBuilder _webHostBuilder;
 
-    public LetsEncryptChallengeApprovalMiddlewareMiddlewareTests()
+    public LetsEncryptChallengeApprovalMiddlewareTests()
     {
         _fakeClient = new FakeLetsEncryptClient();
         var letsEncryptClientFactory = Substitute.For<IAcmeClientFactory>();
