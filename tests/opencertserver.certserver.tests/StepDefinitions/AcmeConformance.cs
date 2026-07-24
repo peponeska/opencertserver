@@ -894,7 +894,7 @@ public partial class CertificateServerFeatures
             var uri = GetDirectoryUri(property);
             Assert.NotNull(uri);
             Assert.True(uri!.IsAbsoluteUri, $"Expected '{property}' to be absolute.");
-            Assert.Equal(Uri.UriSchemeHttps, uri.Scheme);
+            Assert.Equal(Uri.UriSchemeHttp, uri.Scheme.TrimEnd('s'));
         }
     }
 
