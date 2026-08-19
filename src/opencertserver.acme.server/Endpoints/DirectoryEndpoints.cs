@@ -35,7 +35,7 @@ public static class DirectoryEndpoints
                 Meta = new Abstractions.HttpModel.DirectoryMetadata
                 {
                     ExternalAccountRequired = options.ExternalAccountRequired,
-                    CAAIdentities           = null,
+                    CAAIdentities           = options.CAAIdentities,
                     TermsOfService          = options.TOS.RequireAgreement ? options.TOS.Url : null,
                     Website                 = options.WebsiteUrl,
                     ChallengeTypesWithAdditionalContent = ChallengeTypes.AllTypes

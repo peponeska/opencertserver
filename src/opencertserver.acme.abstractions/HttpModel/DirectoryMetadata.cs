@@ -17,9 +17,9 @@ public sealed class DirectoryMetadata
     /// </summary>
     public string? Website { get; set; }
     /// <summary>
-    /// Gets or sets the CAA identities string, if present.
+    /// Gets or sets the CAA identities, if present.
     /// </summary>
-    public string? CAAIdentities { get; set; }
+    public string[]? CAAIdentities { get; set; }
     /// <summary>
     /// Gets or sets a value indicating whether external account binding is required.
     /// </summary>
