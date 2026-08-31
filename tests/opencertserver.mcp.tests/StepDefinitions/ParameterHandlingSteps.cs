@@ -5,7 +5,6 @@ using OpenCertServer.Ca.Utils.Ca;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using Ca;
 using Support;
 using Reqnroll;
 using Xunit;

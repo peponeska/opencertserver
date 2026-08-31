@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer;
 
 using System.Globalization;
@@ -42,7 +44,7 @@ internal sealed class DefaultCsrValidator : ICsrValidator
                 .ToArray();
 
             if (!csrNames.OrderBy(static x => x, StringComparer.Ordinal)
-                    .SequenceEqual(orderNames.OrderBy(static x => x, StringComparer.Ordinal), StringComparer.Ordinal))
+                .SequenceEqual(orderNames.OrderBy(static x => x, StringComparer.Ordinal), StringComparer.Ordinal))
             {
                 return Task.FromResult(Invalid(
                     string.Format(
@@ -64,6 +66,6 @@ internal sealed class DefaultCsrValidator : ICsrValidator
         }
 
         static (bool isValid, AcmeError? error) Invalid(string detail)
-            => (false, new AcmeError("badCSR", detail));
+            => (false, new AcmeError { Type = "badCSR", Detail = detail });
     }
 }

@@ -1,7 +1,5 @@
 namespace OpenCertServer.Mcp;
 
-using System.Security.Cryptography.X509Certificates;
-
 /// <summary>
 /// Paginated result for certificate search.
 /// </summary>

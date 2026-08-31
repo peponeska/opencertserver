@@ -2,7 +2,6 @@ namespace OpenCertServer.Attestation;
 
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenCertServer.Attestation.Native;

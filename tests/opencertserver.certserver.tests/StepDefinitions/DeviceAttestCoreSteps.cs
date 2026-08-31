@@ -7,9 +7,7 @@ using Acme.Server.Services;
 using Reqnroll;
 using Xunit;
 using AcmeAccount = Acme.Abstractions.Model.Account;
-using AcmeIdentifier = Acme.Abstractions.Model.Identifier;
 using AcmeOrder = Acme.Abstractions.Model.Order;
-using ChallengeTypes = Acme.Abstractions.Model.ChallengeTypes;
 
 /// <summary>
 /// Step definitions for device-attest-core.feature.
@@ -48,7 +46,8 @@ public sealed class DeviceAttestCoreSteps
         var securityKey = new RsaSecurityKey(rsa.ExportParameters(true));
         var jwk = JsonWebKeyConverter.ConvertFromRSASecurityKey(securityKey);
         _account = new AcmeAccount(jwk, null, DateTimeOffset.UtcNow) { Status = AccountStatus.Valid };
-        _order = new AcmeOrder(_account, [new AcmeIdentifier("dns", "device.example.com")], null)
+        _order = new AcmeOrder(_account, [new Identifier { Type = IdentifierType.Dns, Value = "device.example.com" }],
+            null)
         {
             Expires = DateTimeOffset.UtcNow.AddDays(1)
         };

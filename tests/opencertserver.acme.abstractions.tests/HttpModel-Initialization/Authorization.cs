@@ -1,7 +1,8 @@
-﻿namespace OpenCertServer.Acme.Abstractions.Tests.HttpModel_Initialization;
+﻿using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.Tests.HttpModel_Initialization;
 
 using Microsoft.IdentityModel.Tokens;
-
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -10,8 +11,10 @@ public sealed class Authorization
 {
     private (Model.Authorization authorization, List<HttpModel.Challenge> challenges) CreateTestModel()
     {
-        var account = new Model.Account(new JsonWebKey(StaticTestData.JwkJson), new List<string> { "some@example.com" }, null);
-        var order = new Model.Order(account, new List<Model.Identifier> { new Model.Identifier("dns", "*.example.com") }, null);
+        var account = new Model.Account(new JsonWebKey(StaticTestData.JwkJson), new List<string> { "some@example.com" },
+            null);
+        var order = new Model.Order(account,
+            new List<Identifier> { new Identifier { Type = IdentifierType.Dns, Value = "*.example.com" } }, null);
         var authorization = new Model.Authorization(order, order.Identifiers.First(), DateTimeOffset.UtcNow);
         var challenge = new Model.Challenge(authorization, "http-01");
 

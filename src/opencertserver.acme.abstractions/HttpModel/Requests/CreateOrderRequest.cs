@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.HttpModel.Requests;
+﻿using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.HttpModel.Requests;
 
 using System;
 using System.Collections.Generic;

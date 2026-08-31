@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.HttpModel;
+﻿using CertesSlim.Acme;
+
+namespace OpenCertServer.Acme.Abstractions.HttpModel;
 
 using System.Globalization;
 
@@ -25,7 +27,7 @@ public sealed class Challenge
         Url = challengeUrl;
 
         Validated = model.Validated?.ToString("o", CultureInfo.InvariantCulture);
-        Error = model.Error != null ? new AcmeError(model.Error) : null;
+        Error = model.Error;
     }
 
     /// <summary>

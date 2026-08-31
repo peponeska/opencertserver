@@ -56,4 +56,3 @@ public sealed class ExternalAccountKey : IVersioned
     /// <inheritdoc />
     public long Version { get; set; }
 }
-

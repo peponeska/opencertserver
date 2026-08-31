@@ -1,9 +1,11 @@
-﻿namespace OpenCertServer.Acme.Abstractions.IssuanceServices;
+﻿using CertesSlim.Acme;
+using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.IssuanceServices;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Model;
 
 /// <summary>
 /// Defines a service for issuing certificates for ACME orders.

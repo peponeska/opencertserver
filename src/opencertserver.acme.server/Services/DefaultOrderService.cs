@@ -128,7 +128,12 @@ public sealed class DefaultOrderService : IOrderService
         }
 
         authorization.SetStatus(AuthorizationStatus.Deactivated);
-        order.Error ??= new AcmeError("unauthorized", "Authorization was deactivated by the client.", authorization.Identifier);
+        order.Error ??= new AcmeError
+        {
+            Type = "unauthorized",
+            Detail = "Authorization was deactivated by the client.",
+            Identifier = authorization.Identifier
+        };
         order.SetStatusFromAuthorizations();
         await _orderStore.SaveOrder(order, cancellationToken).ConfigureAwait(false);
 
@@ -178,7 +183,7 @@ public sealed class DefaultOrderService : IOrderService
         {
             if (error != null && string.Equals(error.Type, "urn:ietf:params:acme:error:badCSR", StringComparison.Ordinal))
             {
-                throw new BadCsrException(error.Detail);
+                throw new BadCsrException(error.Detail!);
             }
 
             order.Error = error;

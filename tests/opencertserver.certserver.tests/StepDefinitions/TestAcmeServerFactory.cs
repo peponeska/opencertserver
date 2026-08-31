@@ -1,3 +1,6 @@
+using CertesSlim.Acme;
+using CertesSlim.Acme.Resource;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using System.Diagnostics.CodeAnalysis;
@@ -16,8 +19,6 @@ using OpenCertServer.Acme.Server.Extensions;
 
 using AcmeAccount = Acme.Abstractions.Model.Account;
 using AcmeChallenge = Acme.Abstractions.Model.Challenge;
-using AcmeError = Acme.Abstractions.Model.AcmeError;
-using AcmeIdentifier = Acme.Abstractions.Model.Identifier;
 using AcmeOrder = Acme.Abstractions.Model.Order;
 
 /// <summary>
@@ -110,7 +111,7 @@ internal static class TestAcmeServerFactory
     private sealed class StubCertificateIssuer : IIssueCertificates
     {
         public Task<(byte[]? certificate, AcmeError? error)> IssueCertificate(
-            string? profile, string csr, IEnumerable<AcmeIdentifier> identifiers,
+            string? profile, string csr, IEnumerable<Identifier> identifiers,
             DateTimeOffset? notBefore, DateTimeOffset? notAfter,
             CancellationToken cancellationToken)
             => Task.FromResult<(byte[]?, AcmeError?)>(([0x00], null));

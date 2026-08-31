@@ -1,7 +1,9 @@
+using CertesSlim.Acme;
+using CertesSlim.Acme.Resource;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using Acme.Abstractions.IssuanceServices;
-using Acme.Abstractions.Model;
 using CertServer;
 
 internal sealed class TestAcmeIssuer : IIssueCertificates
@@ -30,7 +32,7 @@ internal sealed class TestAcmeIssuer : IIssueCertificates
         if (FailNextIssuance)
         {
             FailNextIssuance = false;
-            return (null, new AcmeError(FailureType, FailureDetail));
+            return (null, new AcmeError { Type = FailureType, Detail = FailureDetail });
         }
 
         return await _innerIssuer
@@ -38,4 +40,3 @@ internal sealed class TestAcmeIssuer : IIssueCertificates
             .ConfigureAwait(false);
     }
 }
-

@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.Acme.Server.Services;
 
 using System;
@@ -64,8 +66,13 @@ public sealed class DeviceAttestChallengeValidator : IValidateDeviceAttestChalle
         var rawBody = challenge.ExtraData;
         if (string.IsNullOrEmpty(rawBody))
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("device_attestation", "No attestation proof provided in challenge body")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "device_attestation",
+                                                            Detail =
+                                                                "No attestation proof provided in challenge body"
+                                                        }));
         }
 
         DeviceAttestChallengeAnswer? answer;
@@ -76,45 +83,70 @@ public sealed class DeviceAttestChallengeValidator : IValidateDeviceAttestChalle
         }
         catch (JsonException)
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("malformed", "Unable to parse device attestation proof")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "malformed",
+                                                            Detail = "Unable to parse device attestation proof"
+                                                        }));
         }
 
         if (answer == null)
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("malformed", "Unable to parse device attestation proof")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "malformed",
+                                                            Detail = "Unable to parse device attestation proof"
+                                                        }));
         }
 
         // Step 1: Verify nonce matches challenge token.
         if (!Base64UrlBytesEqual(answer.Nonce, challenge.Token))
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("invalid_nonce", "Attestation nonce does not match challenge nonce")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "invalid_nonce",
+                                                            Detail = "Attestation nonce does not match challenge nonce"
+                                                        }));
         }
 
         // S-III: Reject replayed nonces.
         if (!_consumedNonces.TryAdd(challenge.Token, DateTimeOffset.UtcNow))
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("replay_nonce", "This attestation nonce has already been consumed")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "replay_nonce",
+                                                            Detail = "This attestation nonce has already been consumed"
+                                                        }));
         }
 
         // Step 2: Verify the AIK certificate chain against trusted roots (S-II).
         if (!VerifyAikCertificateChain(answer.AikCertificate))
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("invalid_attestation", "Device attestation chain verification failed")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "invalid_attestation",
+                                                            Detail =
+                                                                "Device attestation chain verification failed"
+                                                        }));
         }
 
         // Step 3: Verify the TPM proof structure and AIK signature (S-I).
         if (!VerifyProof(answer, challenge.Token))
         {
-            return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-                new AcmeError("invalid_attestation", "Device attestation proof verification failed")));
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "invalid_attestation",
+                                                            Detail = "Device attestation proof verification failed"
+                                                        }));
         }
 
-        return Task.FromResult<(bool IsValid, AcmeError? error)>((true, null));
+        return Task.FromResult<(bool, AcmeError?)>((true, null));
     }
 
     // ─── Chain verification (S-II) ────────────────────────────────────────────
@@ -122,7 +154,7 @@ public sealed class DeviceAttestChallengeValidator : IValidateDeviceAttestChalle
     /// <summary>
     /// Verifies the AIK cert chain against injected manufacturer trusted roots.
     /// <see cref="X509VerificationFlags.AllowUnknownCertificateAuthority"/> is intentionally
-    /// absent — self-signed or unrecognised CA certs are rejected.
+    /// absent — self-signed or unrecognized CA certs are rejected.
     /// </summary>
     private bool VerifyAikCertificateChain(string? aikCertB64Url)
     {
@@ -186,7 +218,7 @@ public sealed class DeviceAttestChallengeValidator : IValidateDeviceAttestChalle
             tpm2bAttest = Marshaller.FromTpmRepresentation<Tpm2bAttest>(proofBytes);
         }
         catch (Exception ex) when (ex is TpmException or ArgumentOutOfRangeException
-                                      or IndexOutOfRangeException or OverflowException)
+         or IndexOutOfRangeException or OverflowException)
         {
             return false;
         }
@@ -206,7 +238,7 @@ public sealed class DeviceAttestChallengeValidator : IValidateDeviceAttestChalle
         if (expectedNonce == null)
             return false;
 
-        if (!expectedNonce.AsSpan().SequenceEqual(attest.extraData ?? []))
+        if (!expectedNonce.AsSpan().SequenceEqual(attest.extraData))
             return false;
 
         // Verify the AIK signature over the proof bytes.

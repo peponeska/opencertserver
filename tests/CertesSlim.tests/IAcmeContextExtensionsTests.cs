@@ -11,11 +11,11 @@ public class IAcmeContextExtensionsTests
     [Fact]
     public async Task CanGetTos()
     {
-        var tosUri = new Uri("http://acme.d/tos");
+        const string tosUri = "http://acme.d/tos";
         var ctxMock = Substitute.For<IAcmeContext>();
         ctxMock.GetDirectory()
             .Returns(new Directory(null!, null!, null!, null!, null!, new DirectoryMeta(tosUri, null!, null, null)));
-        Assert.Equal(tosUri, await ctxMock.TermsOfService());
+        Assert.Equal(tosUri, (await ctxMock.TermsOfService())?.AbsoluteUri);
 
         ctxMock.GetDirectory()
             .Returns(new Directory(null!, null!, null!, null!, null!, new DirectoryMeta(null!, null!, null, null)));

@@ -14,7 +14,11 @@ public class AcmeError
     /// <value>
     /// The error type URI.
     /// </value>
-    public string? Type { get; set; }
+    public string? Type
+    {
+        get;
+        set { field = value == null || value.Contains(':') ? value : $"urn:ietf:params:acme:error:{value}"; }
+    }
 
     /// <summary>
     /// Gets or sets the detail message.

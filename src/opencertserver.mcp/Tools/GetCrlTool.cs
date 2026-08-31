@@ -1,7 +1,5 @@
 namespace OpenCertServer.Mcp.Tools;
 
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using OpenCertServer.Ca.Utils;
 using OpenCertServer.Ca.Utils.X509Extensions;
 

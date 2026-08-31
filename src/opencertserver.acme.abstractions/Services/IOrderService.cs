@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.Services;
+﻿using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.Services;
 
 using System;
 using System.Collections.Generic;

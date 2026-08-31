@@ -1,6 +1,5 @@
 ﻿namespace CertesSlim.Tests.Acme.Resource;
 
-using System;
 using CertesSlim.Acme.Resource;
 using Xunit;
 
@@ -11,10 +10,10 @@ public class DirectoryMetaTests
     {
         var data = new
         {
-            Website = new Uri("http://certes.is.working"),
+            Website = "http://certes.is.working",
             CaaIdentities = new[] { "caa1", "caa2" },
             ExternalAccountRequired = true,
-            TermsOfService = new Uri("http://certes.is.working/tos")
+            TermsOfService = "http://certes.is.working/tos"
         };
 
         var model = new DirectoryMeta(

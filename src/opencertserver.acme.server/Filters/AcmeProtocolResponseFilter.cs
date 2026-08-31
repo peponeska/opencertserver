@@ -1,3 +1,6 @@
+using System.Net;
+using CertesSlim.Acme;
+
 namespace OpenCertServer.Acme.Server.Filters;
 
 using System.Diagnostics.CodeAnalysis;
@@ -5,7 +8,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using OpenCertServer.Acme.Abstractions.Exceptions;
-using OpenCertServer.Acme.Abstractions.HttpModel;
 using OpenCertServer.Acme.Abstractions.Services;
 using OpenCertServer.Acme.Server.Endpoints;
 
@@ -48,14 +50,20 @@ public sealed class AcmeProtocolResponseFilter : IEndpointFilter
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026",
-        Justification = "ACME problem documents are small known DTOs and this server path is not trimmed in the test/runtime configuration.")]
+        Justification =
+            "ACME problem documents are small known DTOs and this server path is not trimmed in the test/runtime configuration.")]
     [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "ACME problem responses are emitted in the regular ASP.NET runtime configuration used by this project.")]
-    private async Task<IResult> CreateProblemResultAsync(HttpContext httpContext, AcmeException exception, int statusCode)
+        Justification =
+            "ACME problem responses are emitted in the regular ASP.NET runtime configuration used by this project.")]
+    private async Task<IResult> CreateProblemResultAsync(
+        HttpContext httpContext,
+        AcmeException exception,
+        int statusCode)
     {
         if (HttpMethods.IsPost(httpContext.Request.Method))
         {
-            await NonceEndpoints.EnsureReplayNonceHeaderAsync(httpContext, _nonceService, _logger).ConfigureAwait(false);
+            await NonceEndpoints.EnsureReplayNonceHeaderAsync(httpContext, _nonceService, _logger)
+                .ConfigureAwait(false);
         }
 
         // RFC 8555 §7.3.3: when the server rejects a request because the terms of service have
@@ -65,9 +73,11 @@ public sealed class AcmeProtocolResponseFilter : IEndpointFilter
             httpContext.Response.Headers.Append("Link", $"<{tosUrl}>; rel=\"terms-of-service\"");
         }
 
-        var problem = new AcmeError($"{exception.UrnBase}:{exception.ErrorType}", exception.Message)
+        var problem = new AcmeError
         {
-            Status = statusCode
+            Type = $"{exception.UrnBase}:{exception.ErrorType}", Detail = exception.Message,
+
+            Status = (HttpStatusCode)statusCode
         };
 
         return Results.Json(problem, contentType: "application/problem+json", statusCode: statusCode);

@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using System.Reflection;
@@ -13,8 +15,6 @@ using Xunit;
 
 using AcmeAccount = Acme.Abstractions.Model.Account;
 using AcmeChallenge = Acme.Abstractions.Model.Challenge;
-using AcmeError = Acme.Abstractions.Model.AcmeError;
-using AcmeIdentifier = Acme.Abstractions.Model.Identifier;
 using AcmeOrder = Acme.Abstractions.Model.Order;
 using AcmeAuthorization = Acme.Abstractions.Model.Authorization;
 using DeviceAttestAnswer = Acme.Abstractions.Model.DeviceAttestChallengeAnswer;
@@ -57,12 +57,12 @@ public sealed class DeviceAttestValidationSteps : IDisposable
     private static AcmeChallenge CreateChallengeWithToken(string token)
     {
         var account = CreateTestAccount();
-        var order = new AcmeOrder(account, [new AcmeIdentifier("dns", "test.example.com")], null)
+        var order = new AcmeOrder(account, [new Identifier { Type = IdentifierType.Dns, Value = "test.example.com" }], null)
         {
             Expires = DateTimeOffset.UtcNow.AddDays(1)
         };
         var authorization = new AcmeAuthorization(order,
-            new AcmeIdentifier("dns", "test.example.com"), DateTimeOffset.UtcNow.AddDays(1));
+            new Identifier { Type = IdentifierType.Dns, Value = "test.example.com" }, DateTimeOffset.UtcNow.AddDays(1));
         var challenge = new AcmeChallenge(authorization, ChallengeTypes.DeviceAttest01);
         TokenBackingField.SetValue(challenge, token);
         return challenge;

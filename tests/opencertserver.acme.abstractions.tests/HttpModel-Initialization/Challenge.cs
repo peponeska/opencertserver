@@ -1,7 +1,9 @@
-﻿namespace OpenCertServer.Acme.Abstractions.Tests.HttpModel_Initialization;
+﻿using CertesSlim.Acme;
+using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.Tests.HttpModel_Initialization;
 
 using Microsoft.IdentityModel.Tokens;
-
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -13,7 +15,7 @@ public sealed class Challenge
         var account = new Model.Account(new JsonWebKey(StaticTestData.JwkJson), new List<string> { "some@example.com" },
             null);
         var order = new Model.Order(account,
-            new List<Model.Identifier> { new Model.Identifier("dns", "www.example.com") }, null);
+            [new Identifier { Type = IdentifierType.Dns, Value = "www.example.com" }], null);
         var authorization = new Model.Authorization(order, order.Identifiers.First(), DateTimeOffset.UtcNow);
         var challenge = new Model.Challenge(authorization, "http-01");
 
@@ -50,7 +52,7 @@ public sealed class Challenge
     public void Ctor_Initializes_Error()
     {
         var (challenge, challengeUrl) = CreateTestModel();
-        challenge.Error = new Model.AcmeError("type", "detail");
+        challenge.Error = new AcmeError { Type = "type", Detail = "detail" };
 
         var sut = new HttpModel.Challenge(challenge, challengeUrl);
 

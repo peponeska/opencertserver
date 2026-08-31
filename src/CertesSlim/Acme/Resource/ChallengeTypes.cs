@@ -1,4 +1,6 @@
-﻿namespace CertesSlim.Acme.Resource;
+﻿using System.Collections.Immutable;
+
+namespace CertesSlim.Acme.Resource;
 
 /// <summary>
 /// Represents the type for <see cref="Challenge"/>.
@@ -24,4 +26,8 @@ public static class ChallengeTypes
     /// The device-attest-01 challenge.
     /// </summary>
     public const string DeviceAttest01 = "device-attest-01";
+    /// <summary>
+    /// Gets an immutable array of all supported challenge types.
+    /// </summary>
+    public static readonly ImmutableArray<string> AllTypes = [Http01, Dns01, DeviceAttest01];
 }

@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.IssuanceServices;
+﻿using CertesSlim.Acme;
+
+namespace OpenCertServer.Acme.Abstractions.IssuanceServices;
 
 using System.Threading;
 using System.Threading.Tasks;

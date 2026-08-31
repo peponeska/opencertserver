@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.HttpModel;
+﻿using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.HttpModel;
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -31,7 +33,7 @@ public sealed class Authorization
         Expires = model.Expires.ToString("o", CultureInfo.InvariantCulture);
         Wildcard = model.IsWildcard;
 
-        Identifier = new Identifier(model.Identifier);
+        Identifier = model.Identifier;
         Challenges = new List<Challenge>(challenges);
     }
 

@@ -15,7 +15,7 @@ public class DirectoryMeta
     /// The terms of service.
     /// </value>
     [JsonPropertyName("termsOfService")]
-    public Uri TermsOfService { get; }
+    public string? TermsOfService { get; }
 
     /// <summary>
     /// Gets or sets the website.
@@ -24,7 +24,7 @@ public class DirectoryMeta
     /// The website.
     /// </value>
     [JsonPropertyName("website")]
-    public Uri Website { get; }
+    public string? Website { get; }
 
     /// <summary>
     /// Gets or sets the caa identities.
@@ -43,6 +43,11 @@ public class DirectoryMeta
     /// </value>
     [JsonPropertyName("externalAccountRequired")]
     public bool? ExternalAccountRequired { get; }
+    /// <summary>
+    /// Gets or sets the list of challenge types that include additional content in their responses.
+    /// Per RFC 8555 / ACME drafts, advertises which challenge types the server supports beyond standard.
+    /// </summary>
+    public IReadOnlyList<string>? ChallengeTypesWithAdditionalContent { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DirectoryMeta"/> class.
@@ -52,8 +57,8 @@ public class DirectoryMeta
     /// <param name="caaIdentities">The caa identities.</param>
     /// <param name="externalAccountRequired">The external account required.</param>
     public DirectoryMeta(
-        Uri termsOfService,
-        Uri website,
+        string? termsOfService,
+        string? website,
         IList<string>? caaIdentities,
         bool? externalAccountRequired)
     {

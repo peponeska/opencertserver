@@ -41,7 +41,12 @@ public static class IAcmeContextExtensions
         /// <returns>
         /// The account created.
         /// </returns>
-        public Task<IAccountContext> NewAccount(string email, bool termsOfServiceAgreed = false, string? eabKeyId = null, string? eabKey = null, string? eabKeyAlg = null)
+        public Task<IAccountContext> NewAccount(
+            string email,
+            bool termsOfServiceAgreed = false,
+            string? eabKeyId = null,
+            string? eabKey = null,
+            string? eabKeyAlg = null)
             => context.NewAccount([$"mailto:{email}"], termsOfServiceAgreed, eabKeyId, eabKey, eabKeyAlg);
 
         /// <summary>
@@ -51,7 +56,7 @@ public static class IAcmeContextExtensions
         public async Task<Uri?> TermsOfService()
         {
             var dir = await context.GetDirectory().ConfigureAwait(false);
-            return dir.Meta?.TermsOfService;
+            return dir.Meta?.TermsOfService == null ? null : new Uri(dir.Meta.TermsOfService);
         }
     }
 }

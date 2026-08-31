@@ -12,7 +12,6 @@ using Ca;
 using Ca.Utils;
 using OpenCertServer.Ca.Utils.Ca;
 using Ca.Utils.Ocsp;
-using Ca.Server;
 using OpenCertServer.Mcp.Tools;
 using ModelContextProtocol.Server;
 using Microsoft.Extensions.Options;

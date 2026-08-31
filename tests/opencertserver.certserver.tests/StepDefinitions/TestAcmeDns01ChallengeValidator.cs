@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using Acme.Abstractions.Model;
@@ -24,15 +26,20 @@ internal sealed class TestAcmeDns01ChallengeValidator : TokenChallengeValidator,
             return Task.FromResult((true, (AcmeError?)null));
         }
 
-        return Task.FromResult<(bool IsValid, AcmeError? error)>((false,
-            new AcmeError(_state.FailureType, _state.FailureDetail, challenge.Authorization.Identifier)));
+        return Task.FromResult<(bool, AcmeError?)>((false,
+                                                    new AcmeError
+                                                    {
+                                                        Type = _state.FailureType,
+                                                        Detail = _state.FailureDetail,
+                                                        Identifier = challenge.Authorization.Identifier
+                                                    }));
     }
 
-    protected override Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(Challenge challenge, CancellationToken cancellationToken)
+    protected override Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
+        Challenge challenge,
+        CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     protected override string GetExpectedContent(Challenge challenge, Account account)
         => throw new NotImplementedException();
 }
-
-

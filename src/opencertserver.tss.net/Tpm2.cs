@@ -7,7 +7,6 @@
 #endif
 namespace OpenCertServer.Tpm2Lib;
 
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;

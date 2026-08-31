@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using System.Threading;

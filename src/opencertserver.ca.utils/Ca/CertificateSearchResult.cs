@@ -1,7 +1,5 @@
 namespace OpenCertServer.Ca.Utils.Ca;
 
-using System.Security.Cryptography.X509Certificates;
-
 /// <summary>
 /// Paginated search result containing certificate metadata and a total count.
 /// </summary>

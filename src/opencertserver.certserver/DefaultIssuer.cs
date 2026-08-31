@@ -1,10 +1,12 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer;
 
-using OpenCertServer.Ca.Utils.Ca;
-using Ca.Utils.X509Extensions;
 using System.Text;
 using Acme.Abstractions.IssuanceServices;
-using Acme.Abstractions.Model;
+using Ca.Utils.X509Extensions;
+using CertesSlim.Acme.Resource;
+using OpenCertServer.Ca.Utils.Ca;
 
 internal sealed class DefaultIssuer : IIssueCertificates
 {
@@ -30,7 +32,8 @@ internal sealed class DefaultIssuer : IIssueCertificates
             csr,
             profile,
             new System.Security.Claims.ClaimsIdentity(
-                identifiers.Select(i => new System.Security.Claims.Claim(i.Type, i.Value)), "acme"),
+                identifiers.Select(i =>
+                    new System.Security.Claims.Claim(i.Type.ToString().ToLowerInvariant(), i.Value)), "acme"),
             notBefore: notBefore,
             notAfter: notAfter,
             cancellationToken: cancellationToken);
@@ -38,7 +41,10 @@ internal sealed class DefaultIssuer : IIssueCertificates
         {
             SignCertificateResponse.Success success => (
                 Encoding.UTF8.GetBytes(success.Certificate.ToPemChain(success.Issuers)), null),
-            SignCertificateResponse.Error error => (null, new AcmeError("multiple", string.Join(", ", error.Errors))),
+            SignCertificateResponse.Error error => (null, new AcmeError
+            {
+                Type = "multiple", Detail = string.Join(", ", error.Errors)
+            }),
             _ => throw new ArgumentException("Invalid response")
         };
     }

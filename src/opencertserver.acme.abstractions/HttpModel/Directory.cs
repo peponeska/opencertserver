@@ -1,4 +1,6 @@
-﻿namespace OpenCertServer.Acme.Abstractions.HttpModel;
+﻿using CertesSlim.Acme.Resource;
+
+namespace OpenCertServer.Acme.Abstractions.HttpModel;
 
 /// <summary>
 /// Describes the HTTP-Response-Model for an ACME Directory.
@@ -33,5 +35,5 @@ public sealed class Directory
     /// <summary>
     /// Gets or sets the directory metadata object, if present.
     /// </summary>
-    public DirectoryMetadata? Meta { get; set; }
+    public DirectoryMeta? Meta { get; set; }
 }

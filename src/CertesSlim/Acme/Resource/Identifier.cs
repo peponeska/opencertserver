@@ -24,4 +24,13 @@ public class Identifier
     /// </value>
     [JsonPropertyName("value")]
     public required string Value { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the identifier is a wildcard (starts with '*').
+    /// </summary>
+    [JsonIgnore]
+    public bool IsWildcard
+    {
+        get { return Value.StartsWith('*'); }
+    }
 }

@@ -1,3 +1,5 @@
+using CertesSlim.Acme.Resource;
+
 namespace OpenCertServer.Acme.Server.Endpoints;
 
 using System.Diagnostics;
@@ -5,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
-using Abstractions.Model;
 using Configuration;
 
 public static class DirectoryEndpoints
@@ -32,12 +33,12 @@ public static class DirectoryEndpoints
                 NewAuthz = null,
                 RevokeCert = GetUrl("RevokeCert"),
                 KeyChange = GetUrl("KeyChange"),
-                Meta = new Abstractions.HttpModel.DirectoryMetadata
+                Meta = new DirectoryMeta(
+                    options.TOS.RequireAgreement ? options.TOS.Url : null,
+                    options.WebsiteUrl,
+                    options.CAAIdentities,
+                    options.ExternalAccountRequired)
                 {
-                    ExternalAccountRequired = options.ExternalAccountRequired,
-                    CAAIdentities = options.CAAIdentities,
-                    TermsOfService = options.TOS.RequireAgreement ? options.TOS.Url : null,
-                    Website = options.WebsiteUrl,
                     ChallengeTypesWithAdditionalContent = ChallengeTypes.AllTypes
                 }
             };

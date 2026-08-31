@@ -1,6 +1,7 @@
+using CertesSlim.Acme;
 using CertesSlim.Acme.Resource;
-namespace OpenCertServer.Acme.Server.Services;
 
+namespace OpenCertServer.Acme.Server.Services;
 
 using System;
 using System.Collections.Generic;
@@ -28,20 +29,32 @@ public abstract class TokenChallengeValidator : IValidateChallenges
 
         if (account.Status != AccountStatus.Valid)
         {
-            return (false, new AcmeError("unauthorized", "Account invalid", challenge.Authorization.Identifier));
+            return (
+                false,
+                new AcmeError
+                {
+                    Type = "unauthorized",
+                    Detail = "Account invalid",
+                    Identifier = challenge.Authorization.Identifier
+                });
         }
 
         if (challenge.Authorization.Expires < DateTimeOffset.UtcNow)
         {
             challenge.Authorization.SetStatus(AuthorizationStatus.Expired);
             return (false,
-                new AcmeError("unauthorized", "Authorization expired", challenge.Authorization.Identifier));
+                    new AcmeError
+                    {
+                        Type = "unauthorized",
+                        Detail = "Authorization expired",
+                        Identifier = challenge.Authorization.Identifier
+                    });
         }
 
         if (challenge.Authorization.Order.Expires < DateTimeOffset.UtcNow)
         {
             challenge.Authorization.Order.SetStatus(OrderStatus.Invalid);
-            return (false, new AcmeError("malformed", "Order expired"));
+            return (false, new AcmeError { Type = "malformed", Detail = "Order expired" });
         }
 
         var (challengeContent, error) = await LoadChallengeResponse(challenge, cancellationToken).ConfigureAwait(false);
@@ -53,10 +66,12 @@ public abstract class TokenChallengeValidator : IValidateChallenges
         var expectedResponse = GetExpectedContent(challenge, account);
         return challengeContent?.Contains(expectedResponse) != true
             ? (false,
-                new AcmeError(
-                    "incorrectResponse",
-                    "Challenge response did not contain the expected content.",
-                    challenge.Authorization.Identifier))
+               new AcmeError
+               {
+                   Type = "incorrectResponse",
+                   Detail = "Challenge response did not contain the expected content.",
+                   Identifier = challenge.Authorization.Identifier
+               })
             : (true, null);
     }
 }

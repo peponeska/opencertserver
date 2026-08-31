@@ -1,3 +1,5 @@
+using CertesSlim.Acme;
+
 namespace OpenCertServer.CertServer.Tests.StepDefinitions;
 
 using System.Reflection;
@@ -12,11 +14,8 @@ using Microsoft.IdentityModel.Tokens;
 using OpenCertServer.Acme.Abstractions.Services;
 using Reqnroll;
 using Xunit;
-
 using AcmeAccount = Acme.Abstractions.Model.Account;
 using AcmeChallenge = Acme.Abstractions.Model.Challenge;
-using AcmeError = Acme.Abstractions.Model.AcmeError;
-using AcmeIdentifier = Acme.Abstractions.Model.Identifier;
 using AcmeOrder = Acme.Abstractions.Model.Order;
 using AcmeAuthorization = Acme.Abstractions.Model.Authorization;
 using DeviceAttestAnswer = Acme.Abstractions.Model.DeviceAttestChallengeAnswer;
@@ -38,7 +37,7 @@ public sealed class DeviceAttestServerSteps : IDisposable
     private static readonly FieldInfo TokenBackingField =
         typeof(AcmeChallenge).GetField("<Token>k__BackingField",
             BindingFlags.Instance | BindingFlags.NonPublic)
-        ?? throw new InvalidOperationException("Cannot find Token backing field on Challenge");
+     ?? throw new InvalidOperationException("Cannot find Token backing field on Challenge");
 
     // ─── GROUP 4 & 5: Server setup ────────────────────────────────────────────
 
@@ -58,7 +57,7 @@ public sealed class DeviceAttestServerSteps : IDisposable
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         _directoryJson = JsonSerializer.Deserialize<JsonObject>(json)
-            ?? throw new InvalidOperationException("Directory response was not a JSON object");
+         ?? throw new InvalidOperationException("Directory response was not a JSON object");
     }
 
     [Then(@"the response contains a meta field")]
@@ -75,9 +74,9 @@ public sealed class DeviceAttestServerSteps : IDisposable
     {
         Assert.NotNull(_directoryJson);
         var meta = _directoryJson["meta"]?.AsObject()
-            ?? throw new InvalidOperationException("'meta' is not an object");
+         ?? throw new InvalidOperationException("'meta' is not an object");
         var challengeTypes = meta["challengeTypesWithAdditionalContent"]?.AsArray()
-            ?? throw new InvalidOperationException("'challengeTypesWithAdditionalContent' not found in meta");
+         ?? throw new InvalidOperationException("'challengeTypesWithAdditionalContent' not found in meta");
         var types = challengeTypes.Select(n => n?.GetValue<string>() ?? string.Empty).ToList();
         Assert.Contains(expectedType, types);
     }
@@ -93,11 +92,13 @@ public sealed class DeviceAttestServerSteps : IDisposable
         var securityKey = new RsaSecurityKey(rsa.ExportParameters(true));
         var jwk = JsonWebKeyConverter.ConvertFromRSASecurityKey(securityKey);
         _account = new AcmeAccount(jwk, null, DateTimeOffset.UtcNow) { Status = AccountStatus.Valid };
-        var order = new AcmeOrder(_account, [new AcmeIdentifier("dns", "device.example.com")], null)
+        var order = new AcmeOrder(_account,
+            [new Identifier { Type = IdentifierType.Dns, Value = "device.example.com" }], null)
         {
             Expires = DateTimeOffset.UtcNow.AddDays(1)
         };
-        var authorization = new AcmeAuthorization(order, new AcmeIdentifier("dns", "device.example.com"),
+        var authorization = new AcmeAuthorization(order,
+            new Identifier { Type = IdentifierType.Dns, Value = "device.example.com" },
             DateTimeOffset.UtcNow.AddDays(1));
         _challenge = new AcmeChallenge(authorization, ChallengeTypes.DeviceAttest01);
         TokenBackingField.SetValue(_challenge, token);

@@ -1,4 +1,5 @@
-using CertesSlim.Acme.Resource;
+using CertesSlim.Acme;
+
 namespace OpenCertServer.Acme.Server.Services;
 
 using System;
@@ -36,22 +37,26 @@ public sealed partial class ValidateDns01Challenges : TokenChallengeValidator, I
         return digest;
     }
 
-    protected override async Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(Challenge challenge, CancellationToken cancellationToken)
+    protected override async Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
+        Challenge challenge,
+        CancellationToken cancellationToken)
     {
         try
         {
-            var dnsBaseUrl = challenge.Authorization.Identifier.Value.Replace("*.", "", StringComparison.OrdinalIgnoreCase);
+            var dnsBaseUrl =
+                challenge.Authorization.Identifier.Value.Replace("*.", "", StringComparison.OrdinalIgnoreCase);
             var dnsRecordName = $"_acme-challenge.{dnsBaseUrl}";
             LogValidatingDnsRecord(dnsRecordName);
 
-            var dnsResponse = await _client.QueryAsync(dnsRecordName, QueryType.TXT, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var dnsResponse = await _client
+                .QueryAsync(dnsRecordName, QueryType.TXT, cancellationToken: cancellationToken).ConfigureAwait(false);
             var contents = new List<string>(dnsResponse.Answers.TxtRecords().SelectMany(x => x.Text));
 
             return (contents, null);
         }
         catch (DnsResponseException)
         {
-            return (null, new AcmeError("dns", "Could not read from DNS"));
+            return (null, new AcmeError { Type = "dns", Detail = "Could not read from DNS" });
         }
     }
 

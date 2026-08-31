@@ -1,15 +1,14 @@
-using CertesSlim.Acme.Resource;
 namespace OpenCertServer.Acme.Server.Services;
-
-using System.Net;
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Abstractions.Model;
 using Abstractions.Services;
+using CertesSlim.Acme;
 using Microsoft.IdentityModel.Tokens;
 
 public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidateHttp01Challenges
@@ -53,10 +52,12 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
         {
             return (
                 null,
-                new AcmeError(
-                    "rejectedIdentifier",
-                    "Challenge target resolves to prohibited address range.",
-                    challenge.Authorization.Identifier));
+                new AcmeError
+                {
+                    Type = "rejectedIdentifier",
+                    Detail = "Challenge target resolves to prohibited address range.",
+                    Identifier = challenge.Authorization.Identifier
+                });
         }
 
         var challengeUrl =
@@ -64,11 +65,16 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
 
         try
         {
-            var response = await _httpClient.GetAsync(new Uri(challengeUrl), cancellationToken).ConfigureAwait(false);
+            var response = await _httpClient.GetAsync(new Uri(challengeUrl), cancellationToken)
+                .ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                var error = new AcmeError("incorrectResponse", $"Got non 200 status code: {response.StatusCode}",
-                    challenge.Authorization.Identifier);
+                var error = new AcmeError
+                {
+                    Type = "incorrectResponse",
+                    Detail = $"Got non 200 status code: {response.StatusCode}",
+                    Identifier = challenge.Authorization.Identifier
+                };
                 return (null, error);
             }
 
@@ -77,7 +83,12 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
         }
         catch (HttpRequestException ex)
         {
-            var error = new AcmeError("connection", ex.Message, challenge.Authorization.Identifier);
+            var error = new AcmeError
+            {
+                Type = "connection",
+                Detail = ex.Message,
+                Identifier = challenge.Authorization.Identifier
+            };
             return (null, error);
         }
     }

@@ -1,10 +1,10 @@
-﻿namespace OpenCertServer.Acme.Abstractions.HttpModel;
+﻿using CertesSlim.Acme;
+
+namespace OpenCertServer.Acme.Abstractions.HttpModel;
 
 using CertesSlim.Acme.Resource;
-
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 /// <summary>
 /// Represents an ACME order.
@@ -34,7 +34,7 @@ public sealed class Order
         NotBefore = model.NotBefore?.ToString("o", CultureInfo.InvariantCulture);
         NotAfter = model.NotAfter?.ToString("o", CultureInfo.InvariantCulture);
 
-        Identifiers = model.Identifiers.Select(x => new Identifier(x)).ToList();
+        Identifiers = model.Identifiers;
 
         Authorizations = [.. authorizationUrls];
 
@@ -47,7 +47,7 @@ public sealed class Order
 
         if (model.Error != null)
         {
-            Error = new AcmeError(model.Error);
+            Error = model.Error;
         }
     }
 
@@ -65,10 +65,12 @@ public sealed class Order
     /// Gets the expiration date/time of the order, if set.
     /// </summary>
     public string? Expires { get; }
+
     /// <summary>
     /// Gets the not-before date/time for the order, if set.
     /// </summary>
     public string? NotBefore { get; }
+
     /// <summary>
     /// Gets the not-after date/time for the order, if set.
     /// </summary>
@@ -88,6 +90,7 @@ public sealed class Order
     /// Gets the finalize URL for the order, if any.
     /// </summary>
     public Uri? Finalize { get; }
+
     /// <summary>
     /// Gets the certificate URL for the order, if any.
     /// </summary>
