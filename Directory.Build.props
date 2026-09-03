@@ -20,6 +20,7 @@
         <WarningsNotAsErrors>618;1701;NU1900</WarningsNotAsErrors>
         <IsTrimmable>true</IsTrimmable>
         <IsAotCompatible>true</IsAotCompatible>
+        <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     </PropertyGroup>
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath=""/>
