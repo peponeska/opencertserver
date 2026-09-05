@@ -49,6 +49,7 @@ internal sealed class TestAcmeDns01ChallengeValidator : TokenChallengeValidator,
 
     protected override Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
         Challenge challenge,
+        string? accountUri,
         CancellationToken cancellationToken)
         => throw new NotImplementedException();
 

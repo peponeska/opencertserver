@@ -31,6 +31,17 @@ using Microsoft.Extensions.Options;
 /// <item><c>issuewild</c> applies only to Wildcard Domain Names and takes precedence
 /// over <c>issue</c> when present.</item>
 /// </list>
+/// The processing also honors the RFC 8657 CAA parameter extensions:
+/// <list type="bullet">
+/// <item>An <c>accounturi</c> parameter only authorizes issuance for the account
+/// identified by the given URI; multiple or unparsable <c>accounturi</c> parameters
+/// make the property unsatisfiable.</item>
+/// <item>A <c>validationmethods</c> parameter only authorizes issuance when the
+/// validation method in use is listed in its comma-separated value, accepting
+/// the BR 4.2.2.1.2 "ca-tbr-&lt;subsection&gt;" alternative labels (e.g.
+/// <c>ca-tbr-19</c> for <c>http-01</c>) as equivalent.</item>
+/// <item>Unknown parameters are ignored.</item>
+/// </list>
 /// </remarks>
 public sealed partial class CaaValidator : ICaaValidator
 {
@@ -38,6 +49,18 @@ public sealed partial class CaaValidator : ICaaValidator
     private const string IssueWildTag = "issuewild";
 
     private const int IssuerCriticalFlag = 128;
+
+    /// <summary>
+    /// Maps an ACME validation method to the equivalent <c>validationmethods</c>
+    /// labels, including the BR 4.2.2.1.2 "ca-tbr-&lt;subsection&gt;" alternatives
+    /// (e.g. <c>ca-tbr-19</c> for the <c>http-01</c> Website-ACME method and
+    /// <c>ca-tbr-7</c> for the <c>dns-01</c> DNS-Change method).
+    /// </summary>
+    private static readonly Dictionary<string, string[]> ValidationMethodAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["http-01"] = ["http-01", "ca-tbr-19"],
+        ["dns-01"] = ["dns-01", "ca-tbr-7"]
+    };
 
     private readonly ILogger<CaaValidator> _logger;
     private readonly ILookupClient _client;
@@ -56,7 +79,9 @@ public sealed partial class CaaValidator : ICaaValidator
     /// <inheritdoc />
     public async Task<AcmeError?> ValidateAsync(
         Identifier identifier,
-        CancellationToken cancellationToken)
+        string? accountUri = null,
+        string? validationMethod = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(identifier);
 
@@ -99,7 +124,7 @@ public sealed partial class CaaValidator : ICaaValidator
             return null;
         }
 
-        if (IsAuthorized(applicable))
+        if (IsAuthorized(applicable, accountUri, validationMethod))
         {
             return null;
         }
@@ -194,9 +219,21 @@ public sealed partial class CaaValidator : ICaaValidator
 
     /// <summary>
     /// Determines whether any applicable property authorizes this CA to issue,
-    /// based on the configured <see cref="AcmeServerOptions.CAAIdentities"/>.
+    /// based on the configured <see cref="AcmeServerOptions.CAAIdentities"/> and the
+    /// RFC 8657 <c>accounturi</c> and <c>validationmethods</c> parameters.
     /// </summary>
-    private bool IsAuthorized(IEnumerable<CaaRecord> applicable)
+    /// <remarks>
+    /// Each property is considered independently. A property authorizes issuance
+    /// when its issuer domain name matches a configured CA identity and, for every
+    /// RFC 8657 parameter it carries, the parameter is satisfied by the request.
+    /// A property without a given parameter imposes no restriction for that axis,
+    /// and a property with an invalid, unrecognized, or unsatisfied parameter never
+    /// authorizes issuance (RFC 8657 §3, §4).
+    /// </remarks>
+    private bool IsAuthorized(
+        IEnumerable<CaaRecord> applicable,
+        string? accountUri,
+        string? validationMethod)
     {
         var identities = _options.Value.CAAIdentities ?? [];
         var normalizedIdentities = identities
@@ -212,10 +249,19 @@ public sealed partial class CaaValidator : ICaaValidator
                 continue;
             }
 
-            if (normalizedIdentities.Contains(issuerDomainName))
+            if (!normalizedIdentities.Contains(issuerDomainName))
             {
-                return true;
+                continue;
             }
+
+            var parameters = ParseParameters(record.Value);
+            if (!MatchesAccountUri(parameters, accountUri)
+                || !MatchesValidationMethod(parameters, validationMethod))
+            {
+                continue;
+            }
+
+            return true;
         }
 
         return false;
@@ -238,8 +284,145 @@ public sealed partial class CaaValidator : ICaaValidator
         return NormalizeDomain(issuer.Trim());
     }
 
+    /// <summary>
+    /// Parses the RFC 8657 CAA parameters (<c>accounturi</c> and
+    /// <c>validationmethods</c>) from an <c>issue</c>/<c>issuewild</c> value.
+    /// Unknown parameters are ignored, allowing forward compatibility with
+    /// future CAA parameter extensions.
+    /// </summary>
+    private static CaaParameters ParseParameters(string value)
+    {
+        var parameters = new CaaParameters();
+        var separator = value.IndexOf(';');
+        if (separator < 0)
+        {
+            return parameters;
+        }
+
+        foreach (var segment in value[(separator + 1)..].Split(';'))
+        {
+            var parameter = segment.Trim();
+            if (parameter.Length == 0)
+            {
+                continue;
+            }
+
+            var equals = parameter.IndexOf('=');
+            var name = equals < 0 ? parameter : parameter[..equals].Trim();
+            var parameterValue = equals < 0 ? string.Empty : parameter[(equals + 1)..].Trim();
+
+            if (string.Equals(name, "accounturi", StringComparison.OrdinalIgnoreCase))
+            {
+                parameters.AccountUris.Add(parameterValue);
+            }
+            else if (string.Equals(name, "validationmethods", StringComparison.OrdinalIgnoreCase))
+            {
+                parameters.ValidationMethodsSpecified = true;
+                foreach (var method in parameterValue.Split(',', StringSplitOptions.TrimEntries))
+                {
+                    if (method.Length > 0)
+                    {
+                        parameters.ValidationMethods.Add(method);
+                    }
+                }
+            }
+        }
+
+        return parameters;
+    }
+
+    /// <summary>
+    /// Determines whether the request satisfies the <c>accounturi</c> restriction of
+    /// a property, if any. Per RFC 8657 §3, a property without an <c>accounturi</c>
+    /// parameter matches any account, a property with multiple <c>accounturi</c>
+    /// parameters is unsatisfiable, and a property with an invalid or unrecognized
+    /// URI is unsatisfiable.
+    /// </summary>
+    private static bool MatchesAccountUri(CaaParameters parameters, string? accountUri)
+    {
+        if (parameters.AccountUris.Count == 0)
+        {
+            return true;
+        }
+
+        if (parameters.AccountUris.Count > 1)
+        {
+            return false;
+        }
+
+        return accountUri != null
+            && Uri.TryCreate(parameters.AccountUris[0], UriKind.Absolute, out var expectedUri)
+            && AccountUrisMatch(accountUri, expectedUri);
+    }
+
+    /// <summary>
+    /// Determines whether the request satisfies the <c>validationmethods</c>
+    /// restriction of a property, if any. Per RFC 8657 §4, a property without a
+    /// <c>validationmethods</c> parameter places no restriction on the method, while
+    /// a property with the parameter only authorizes issuance when the method used
+    /// is listed in its comma-separated value. Per BR 4.2.2.1.2, an equivalent
+    /// "ca-tbr-&lt;subsection&gt;" label (e.g. <c>ca-tbr-19</c> for <c>http-01</c>)
+    /// is accepted as granting permission, and labels are matched case-insensitively.
+    /// </summary>
+    private static bool MatchesValidationMethod(CaaParameters parameters, string? validationMethod)
+    {
+        if (!parameters.ValidationMethodsSpecified)
+        {
+            return true;
+        }
+
+        if (validationMethod == null)
+        {
+            return false;
+        }
+
+        var acceptedLabels = ValidationMethodAliases.TryGetValue(validationMethod, out var aliases)
+            ? aliases
+            : [validationMethod];
+
+        return parameters.ValidationMethods.Any(method =>
+            acceptedLabels.Contains(method, StringComparer.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Compares an account URI with a CAA <c>accounturi</c> value, treating the
+    /// scheme and host as case-insensitive and ignoring a single trailing slash
+    /// on the path (which carries no significance for ACME account URIs).
+    /// </summary>
+    private static bool AccountUrisMatch(string accountUri, Uri expectedUri)
+    {
+        if (!Uri.TryCreate(accountUri, UriKind.Absolute, out var actualUri))
+        {
+            return false;
+        }
+
+        if (!string.Equals(expectedUri.Scheme, actualUri.Scheme, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(expectedUri.Host, actualUri.Host, StringComparison.OrdinalIgnoreCase)
+            || expectedUri.Port != actualUri.Port)
+        {
+            return false;
+        }
+
+        var expectedPath = expectedUri.AbsolutePath.TrimEnd('/');
+        var actualPath = actualUri.AbsolutePath.TrimEnd('/');
+        return string.Equals(expectedPath, actualPath, StringComparison.Ordinal);
+    }
+
     private static string NormalizeDomain(string domain)
         => domain.Trim().TrimEnd('.').ToLowerInvariant();
+
+    /// <summary>
+    /// Holds the RFC 8657 CAA parameters parsed from a single <c>issue</c> or
+    /// <c>issuewild</c> property value.
+    /// </summary>
+    private sealed class CaaParameters
+    {
+        public List<string> AccountUris { get; } = [];
+
+        public List<string> ValidationMethods { get; } = [];
+
+        public bool ValidationMethodsSpecified { get; set; }
+    }
 
     [LoggerMessage(LogLevel.Debug, "Querying CAA records for {domain}")]
     partial void LogQueryingCaa(string domain);

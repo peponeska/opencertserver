@@ -41,6 +41,13 @@ public sealed class Account : IVersioned
     public string AccountId { get; }
 
     /// <summary>
+    /// Gets or sets the URI that identifies this account, as returned in the
+    /// <c>Location</c> header of the new-account response (RFC 8555 §7.3).
+    /// Used to evaluate the <c>accounturi</c> CAA parameter defined in RFC 8657.
+    /// </summary>
+    public string? AccountUri { get; set; }
+
+    /// <summary>
     /// Gets or sets the account status (e.g., valid, deactivated, revoked).
     /// </summary>
     public AccountStatus Status { get; set; }
