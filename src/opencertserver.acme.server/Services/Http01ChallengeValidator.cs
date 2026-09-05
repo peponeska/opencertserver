@@ -45,10 +45,12 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
 
     protected override async Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
         Challenge challenge,
+        string? accountUri,
         CancellationToken cancellationToken)
     {
         var caaError = await _caaValidator
-            .ValidateAsync(challenge.Authorization.Identifier, cancellationToken).ConfigureAwait(false);
+            .ValidateAsync(challenge.Authorization.Identifier, accountUri, challenge.Type, cancellationToken)
+            .ConfigureAwait(false);
         if (caaError != null)
         {
             return (null, caaError);

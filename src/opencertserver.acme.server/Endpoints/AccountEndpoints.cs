@@ -277,8 +277,12 @@ public static class AccountEndpoints
 
             var createdAccount = await accountService.CreateAccount(header.Jwk, payload.Contact,
                 payload.TermsOfServiceAgreed == true, externalAccountId, cancellationToken).ConfigureAwait(false);
-            var createdAccountResponse = CreateAccountResponse(context, links, createdAccount);
             var createdAccountUrl = GetAccountUrl(context, links, createdAccount.AccountId);
+            createdAccount.AccountUri = createdAccountUrl;
+            var accountStore = context.RequestServices
+                .GetRequiredService<Abstractions.Storage.IStoreAccounts>();
+            await accountStore.SaveAccount(createdAccount, cancellationToken).ConfigureAwait(false);
+            var createdAccountResponse = CreateAccountResponse(context, links, createdAccount);
             AcmeInstruments.NewAccountSuccesses.Add(1);
             activity?.SetStatus(ActivityStatusCode.Ok);
             AcmeInstruments.NewAccountDuration.Record(Stopwatch.GetElapsedTime(sw).TotalSeconds);
