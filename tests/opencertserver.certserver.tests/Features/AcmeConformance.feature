@@ -377,6 +377,24 @@ They are intentionally written before adding step implementations so they can dr
             And the ACME server MUST mark the authorization "invalid"
             And the challenge or authorization object MUST expose the validation error
 
+        @acme-item5
+        Scenario: RFC 8659 Section 3 requires CAA checking to gate http-01 validation
+            Given the ACME server offers the "http-01" challenge for a non-wildcard DNS identifier
+            And the ACME server CAA policy denies issuance for the identifier
+            When the client provisions the HTTP challenge response
+            Then the validation error MUST be of type "caa"
+            And the ACME server MUST mark the challenge "invalid"
+            And the ACME server MUST mark the authorization "invalid"
+
+        @acme-item5
+        Scenario: RFC 8659 Section 3 requires CAA checking to gate dns-01 validation
+            Given the ACME server offers the "dns-01" challenge
+            And the ACME server CAA policy denies issuance for the identifier
+            When the client provisions the DNS TXT challenge response
+            Then the validation error MUST be of type "caa"
+            And the ACME server MUST mark the challenge "invalid"
+            And the ACME server MUST mark the authorization "invalid"
+
     Rule: Finalization and certificate issuance
 
         @acme-item4

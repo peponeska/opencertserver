@@ -12,6 +12,12 @@ internal sealed class TestAcmeChallengeValidationState
 
     public string? LastValidatedChallengeType { get; set; }
 
+    /// <summary>
+    /// When true, the simulated challenge validators reject validation because the
+    /// CAA lookup denies issuance for the identifier (RFC 8659).
+    /// </summary>
+    public bool CaaRejected { get; set; }
+
     public void Reset()
     {
         HttpShouldSucceed = true;
@@ -19,6 +25,7 @@ internal sealed class TestAcmeChallengeValidationState
         FailureType = "incorrectResponse";
         FailureDetail = "Simulated challenge validation failure.";
         LastValidatedChallengeType = null;
+        CaaRejected = false;
     }
 }
 

@@ -26,10 +26,12 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
     ];
 
     private readonly HttpClient _httpClient;
+    private readonly ICaaValidator _caaValidator;
 
-    public ValidateHttp01Challenges(HttpClient httpClient)
+    public ValidateHttp01Challenges(HttpClient httpClient, ICaaValidator caaValidator)
     {
         _httpClient = httpClient;
+        _caaValidator = caaValidator;
     }
 
     protected override string GetExpectedContent(Challenge challenge, Account account)
@@ -45,6 +47,13 @@ public sealed class ValidateHttp01Challenges : TokenChallengeValidator, IValidat
         Challenge challenge,
         CancellationToken cancellationToken)
     {
+        var caaError = await _caaValidator
+            .ValidateAsync(challenge.Authorization.Identifier, cancellationToken).ConfigureAwait(false);
+        if (caaError != null)
+        {
+            return (null, caaError);
+        }
+
         var resolvedIps = await Task.WhenAll(
                 Dns.GetHostAddressesAsync(challenge.Authorization.Identifier.Value, cancellationToken))
             .ConfigureAwait(false);

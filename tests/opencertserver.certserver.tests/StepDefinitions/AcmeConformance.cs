@@ -561,6 +561,17 @@ public partial class CertificateServerFeatures
             .ConfigureAwait(false);
     }
 
+    [Given("the ACME server CAA policy denies issuance for the identifier")]
+    public void GivenTheAcmeServerCaaPolicyDeniesIssuanceForTheIdentifier()
+    {
+        var validationState = GetRequiredService<TestAcmeChallengeValidationState>();
+        validationState.Reset();
+        validationState.CaaRejected = true;
+        validationState.FailureType = "caa";
+        validationState.FailureDetail =
+            "CAA record does not authorize this CA to issue certificates for the identifier.";
+    }
+
     [When("the client provisions the DNS TXT challenge response")]
     public async Task WhenTheClientProvisionsTheDnsTxtChallengeResponse()
     {
@@ -1446,6 +1457,16 @@ public partial class CertificateServerFeatures
             AcmeState.ChallengeResponse?.Error != null ||
             AcmeState.AuthorizationResponse?.Challenges.Any(ch => ch.Error != null) == true,
             "Expected the challenge or authorization object to expose a validation error.");
+    }
+
+    [Then("the validation error MUST be of type \"caa\"")]
+    public void ThenTheValidationErrorMustBeOfTypeCaa()
+    {
+        var error = AcmeState.ChallengeResponse?.Error
+            ?? AcmeState.AuthorizationResponse?.Challenges.FirstOrDefault(ch => ch.Error != null)?.Error;
+        Assert.NotNull(error);
+        Assert.NotNull(error.Type);
+        Assert.EndsWith(":caa", error.Type, StringComparison.OrdinalIgnoreCase);
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026",

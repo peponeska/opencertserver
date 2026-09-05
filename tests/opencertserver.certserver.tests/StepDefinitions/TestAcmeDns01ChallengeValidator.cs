@@ -21,6 +21,18 @@ internal sealed class TestAcmeDns01ChallengeValidator : TokenChallengeValidator,
         CancellationToken cancellationToken)
     {
         _state.LastValidatedChallengeType = challenge.Type;
+        if (_state.CaaRejected)
+        {
+            return Task.FromResult<(bool, AcmeError?)>((false,
+                                                        new AcmeError
+                                                        {
+                                                            Type = "caa",
+                                                            Detail =
+                                                                "CAA record does not authorize this CA to issue certificates for the identifier.",
+                                                            Identifier = challenge.Authorization.Identifier
+                                                        }));
+        }
+
         if (_state.DnsShouldSucceed)
         {
             return Task.FromResult((true, (AcmeError?)null));
