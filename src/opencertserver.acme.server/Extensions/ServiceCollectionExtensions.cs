@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
             }
 
             services.AddScoped<ILookupClient, LookupClient>();
+            services.AddScoped<ICaaValidator, CaaValidator>();
             services.AddScoped<IValidateDns01Challenges, ValidateDns01Challenges>();
             services.AddSingleton<IAttestationTrustProvider>(
                 new StaticAttestationTrustProvider([]));

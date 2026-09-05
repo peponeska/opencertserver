@@ -18,11 +18,16 @@ public sealed partial class ValidateDns01Challenges : TokenChallengeValidator, I
 {
     private readonly ILogger<ValidateDns01Challenges> _logger;
     private readonly ILookupClient _client;
+    private readonly ICaaValidator _caaValidator;
 
-    public ValidateDns01Challenges(ILogger<ValidateDns01Challenges> logger, ILookupClient client)
+    public ValidateDns01Challenges(
+        ILogger<ValidateDns01Challenges> logger,
+        ILookupClient client,
+        ICaaValidator caaValidator)
     {
         _logger = logger;
         _client = client;
+        _caaValidator = caaValidator;
     }
 
     protected override string GetExpectedContent(Challenge challenge, Account account)
@@ -43,6 +48,13 @@ public sealed partial class ValidateDns01Challenges : TokenChallengeValidator, I
     {
         try
         {
+            var caaError = await _caaValidator
+                .ValidateAsync(challenge.Authorization.Identifier, cancellationToken).ConfigureAwait(false);
+            if (caaError != null)
+            {
+                return (null, caaError);
+            }
+
             var dnsBaseUrl =
                 challenge.Authorization.Identifier.Value.Replace("*.", "", StringComparison.OrdinalIgnoreCase);
             var dnsRecordName = $"_acme-challenge.{dnsBaseUrl}";
