@@ -44,12 +44,14 @@ public sealed partial class ValidateDns01Challenges : TokenChallengeValidator, I
 
     protected override async Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
         Challenge challenge,
+        string? accountUri,
         CancellationToken cancellationToken)
     {
         try
         {
             var caaError = await _caaValidator
-                .ValidateAsync(challenge.Authorization.Identifier, cancellationToken).ConfigureAwait(false);
+                .ValidateAsync(challenge.Authorization.Identifier, accountUri, challenge.Type, cancellationToken)
+                .ConfigureAwait(false);
             if (caaError != null)
             {
                 return (null, caaError);

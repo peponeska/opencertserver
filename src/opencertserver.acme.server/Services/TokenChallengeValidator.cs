@@ -14,6 +14,7 @@ public abstract class TokenChallengeValidator : IValidateChallenges
 {
     protected abstract Task<(List<string>? Contents, AcmeError? Error)> LoadChallengeResponse(
         Challenge challenge,
+        string? accountUri,
         CancellationToken cancellationToken);
 
     protected abstract string GetExpectedContent(Challenge challenge, Account account);
@@ -57,7 +58,8 @@ public abstract class TokenChallengeValidator : IValidateChallenges
             return (false, new AcmeError { Type = "malformed", Detail = "Order expired" });
         }
 
-        var (challengeContent, error) = await LoadChallengeResponse(challenge, cancellationToken).ConfigureAwait(false);
+        var (challengeContent, error) = await LoadChallengeResponse(challenge, account.AccountUri, cancellationToken)
+            .ConfigureAwait(false);
         if (error != null)
         {
             return (false, error);
